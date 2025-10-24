@@ -44,3 +44,7 @@ celerybeat.pid
 
 # Redis dump
 dump.rdb
+
+# Docker
+*.dockerfile
+docker-compose.override.yml
