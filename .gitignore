@@ -4,36 +4,18 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual environments
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
 
 # Django
 *.log
-local_settings.py
 db.sqlite3
 db.sqlite3-journal
-media/
+/static/
+/media/
+
+# Virtual Environment
+venv/
+env/
+ENV/
 
 # IDE
 .vscode/
@@ -42,11 +24,23 @@ media/
 *.swo
 *~
 
+# Environment variables
+.env
+.env.local
+
 # OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Redis dump
+dump.rdb
