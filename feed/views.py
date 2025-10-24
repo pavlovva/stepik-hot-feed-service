@@ -1,15 +1,17 @@
-from django.http import JsonResponse
-from django.db.models import Count, Q, Case, When, IntegerField
-from django.utils import timezone
 from datetime import timedelta
-from .models import Post
+
+from django.db.models import Case, Count, IntegerField, When
+from django.http import JsonResponse
+from django.utils import timezone
+
 from .cache import (
-    get_cached_feed,
-    set_cached_feed,
     acquire_lock,
+    get_cached_feed,
     release_lock,
+    set_cached_feed,
     wait_for_cache,
 )
+from .models import Post
 
 
 def hot_feed(request):

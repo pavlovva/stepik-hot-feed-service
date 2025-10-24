@@ -1,6 +1,7 @@
-from django.core.cache import cache
 import json
 import time
+
+from django.core.cache import cache
 
 CACHE_KEY_TEMPLATE = "hotfeed:feed:hot:{limit}"
 LOCK_KEY_TEMPLATE = "hotfeed:lock:feed:hot:{limit}"
