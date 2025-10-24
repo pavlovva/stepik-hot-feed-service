@@ -1,21 +1,31 @@
 from django.http import JsonResponse
+from django.db.models import Count, Q, Case, When, IntegerField
+from django.utils import timezone
+from datetime import timedelta
+from .models import Post
 
 
 def hot_feed(request):
-    """
-    GET /v1/feed/hot?limit=50
-    """
-    # TODO: Implement cache-aside logic
-    # TODO: Implement stampede guard
-    # TODO: Filter posts by likes in last 24 hours
-
     limit = int(request.GET.get("limit", 50))
-
-    return JsonResponse(
-        {
-            "status": "ok",
-            "message": "Hot feed endpoint placeholder",
-            "limit": limit,
-            "posts": [],
-        }
-    )
+    
+    twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
+    
+    posts = Post.objects.annotate(
+        score=Count(
+            Case(
+                When(likes__created_at__gte=twenty_four_hours_ago, then=1),
+                output_field=IntegerField()
+            )
+        )
+    ).order_by('-score', '-created_at')[:limit]
+    
+    result = []
+    for post in posts:
+        result.append({
+            'id': post.id,
+            'like_count': post.like_count,
+            'score': post.score,
+            'created_at': post.created_at.isoformat(),
+        })
+    
+    return JsonResponse({'posts': result})
