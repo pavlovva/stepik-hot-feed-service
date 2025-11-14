@@ -19,7 +19,7 @@ logs-all:
 	docker compose logs -f
 
 test:
-	docker compose exec web python manage.py test feed.tests
+	docker compose exec web python manage.py test feed.tests --keepdb
 
 shell:
 	docker compose exec web python manage.py shell

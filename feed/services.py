@@ -1,5 +1,4 @@
 from django.db import IntegrityError, transaction
-from django.db.models import F
 
 from .cache import invalidate_feed_cache
 from .exceptions import LikeNotFoundError, PostNotFoundError
@@ -41,7 +40,6 @@ class PostService:
             raise PostNotFoundError(f"Post with id {post_id} not found")
 
         if not validated_data:
-            # Нет изменений, возвращаем существующий пост
             return serialize_post(post)
 
         post = PostRepository.update(post, validated_data)
@@ -97,13 +95,10 @@ class LikeService:
 
         try:
             like = LikeRepository.create_like(user_id, post_id)
+            return serialize_like(like), True
         except IntegrityError:
             like = LikeRepository.get_or_none(user_id, post_id)
-            if like:
-                return serialize_like(like), False
-            raise
-
-        return serialize_like(like), True
+            return serialize_like(like), False
 
     @staticmethod
     @transaction.atomic

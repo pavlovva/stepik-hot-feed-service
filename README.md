@@ -81,10 +81,12 @@ Views (HTTP layer) → Services (Business logic) → Repositories (DB access) �
 ## Тестирование
 
 ```bash
-# сервисные, конкурентные и API тесты
-docker compose exec web python manage.py test feed.test_services feed.test_concurrency feed.test_api
+docker compose exec web python manage.py test feed.tests --keepdb
 
-# регресс тесты
+# Или через Makefile
+make test
+
+# Полная очистка БД (если нужно)
 docker compose exec web python manage.py test feed.tests
 ```
 
