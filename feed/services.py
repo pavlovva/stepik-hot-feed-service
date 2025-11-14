@@ -66,7 +66,7 @@ class PostService:
         result = []
         for post in posts:
             data = serialize_post(post)
-            data["score"] = post.score  # score добавлен через annotate
+            data["score"] = post.score
             result.append(data)
 
         return result

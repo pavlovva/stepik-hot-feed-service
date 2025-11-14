@@ -1,13 +1,13 @@
 import factory
 from django.test import TestCase, TransactionTestCase
 
-from .exceptions import (
+from feed.exceptions import (
     LikeNotFoundError,
     PostNotFoundError,
     ValidationError,
 )
-from .models import Like, Post
-from .services import LikeService, PostService
+from feed.models import Like, Post
+from feed.services import LikeService, PostService
 
 
 class PostFactory(factory.django.DjangoModelFactory):

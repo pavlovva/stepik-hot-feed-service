@@ -4,7 +4,7 @@ import factory
 from django.core.cache import cache
 from django.test import Client, TestCase
 
-from .models import Like, Post
+from feed.models import Like, Post
 
 
 class PostFactory(factory.django.DjangoModelFactory):

@@ -4,8 +4,8 @@ import factory
 from django.db import connection
 from django.test import TransactionTestCase
 
-from .models import Like, Post
-from .services import LikeService
+from feed.models import Like, Post
+from feed.services import LikeService
 
 
 class PostFactory(factory.django.DjangoModelFactory):
