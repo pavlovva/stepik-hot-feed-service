@@ -97,10 +97,6 @@ class LikeService:
 
         try:
             like = LikeRepository.create_like(user_id, post_id)
-            # Явно обновляем like_count в транзакции для атомарности
-            post.like_count = F("like_count") + 1
-            post.save(update_fields=["like_count"])
-            invalidate_feed_cache()
         except IntegrityError:
             like = LikeRepository.get_or_none(user_id, post_id)
             if like:
@@ -124,10 +120,6 @@ class LikeService:
             )
 
         LikeRepository.delete_like(like)
-        # Явно обновляем like_count в транзакции для атомарности
-        post.like_count = F("like_count") - 1
-        post.save(update_fields=["like_count"])
-        invalidate_feed_cache()
 
     @staticmethod
     def get_like_status(user_id, post_id):
