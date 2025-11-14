@@ -15,12 +15,13 @@ docker compose up --build
 
 ## API
 
+### Hot Feed
+
 ```bash
-# топ постов по лайкам за 24 часа
 GET /v1/feed/hot?limit=50
 ```
 
-**Ответ:**
+**Response**
 ```json
 {
   "posts": [
@@ -34,40 +35,67 @@ GET /v1/feed/hot?limit=50
 }
 ```
 
-## Тестирование
+### Post CRUD
 
-```bash
-# Запуск всех тестов
-docker compose exec web python manage.py test feed.tests
+| Method | Endpoint | Описание |
+| --- | --- | --- |
+| `POST` | `/v1/feed/posts/` | создать пост |
+| `GET` | `/v1/feed/posts/{id}/` | получить пост |
+| `PUT/PATCH` | `/v1/feed/posts/{id}/update/` | обновить пост |
+| `DELETE` | `/v1/feed/posts/{id}/delete/` | удалить пост |
+| `GET` | `/v1/feed/posts/{id}/aggregates/` | агрегаты поста |
 
-# Или через Makefile
-make test
-```
+### Like Operations
+
+| Method | Endpoint | Описание |
+| --- | --- | --- |
+| `POST` | `/v1/feed/posts/{post_id}/likes/` | поставить лайк `{ "user_id": 42 }` |
+| `DELETE` | `/v1/feed/posts/{post_id}/likes/{user_id}/` | снять лайк |
+| `GET` | `/v1/feed/posts/{post_id}/likes/{user_id}/status/` | статус лайка |
+
 
 ## Архитектура
 
-### Модели
+### Слои приложения
 
-- **Post**: `id`, `like_count`, `created_at`
-- **Like**: `id`, `post_id`, `user_id`, `created_at`
+```
+Views (HTTP layer) → Services (Business logic) → Repositories (DB access) → Models
+```
+
+- `views.py` — HTTP-эндпоинты без бизнес-логики
+- `services.py` — сценарии и транзакции
+- `repositories.py` — доступ к БД, оптимизированные запросы
+- `serializers.py`, `validators.py`, `exceptions.py` — вспомогательные слои
+- `cache.py` + `signals.py` — cache-aside + инвалидация
 
 ### Ключевые решения
 
-1. **Денормализация** - `like_count` в Post для быстрой выборки
-2. **Composite index** - `(like_count DESC, created_at DESC)` для hot feed
-3. **Score** - количество лайков за последние 24 часа
-4. **Cache-Aside** - Redis кэш с TTL=60s
-5. **Stampede guard** - Distributed lock через Redis SETNX
-6. **Auto-invalidation** - Django signals при создании/удалении Like
+1. Денормализованный `like_count` и композитный индекс `(like_count DESC, created_at DESC)`
+2. Score = лайки за последние 24 часа (через `annotate`)
+3. Cache-aside на Redis с TTL=60s
+4. Stampede guard через Redis `SETNX` + ожидание
+5. Signals обновляют счётчики и инвалидируют популярные лимиты (10/20/50/100)
+6. Like операции идемпотентны, используют `select_for_update`, `transaction.atomic`, `F()` выражения
+
+
+## Тестирование
+
+```bash
+# сервисные, конкурентные и API тесты
+docker compose exec web python manage.py test feed.test_services feed.test_concurrency feed.test_api
+
+# регресс тесты
+docker compose exec web python manage.py test feed.tests
+```
 
 
 ## Команды
 
 ```bash
-make build    # Сборка Docker образов
-make up       # Запуск сервисов
-make down     # Остановка
-make logs     # Просмотр логов
-make test     # Запуск тестов
+make build    # сборка Docker образов
+make up       # запуск сервисов
+make down     # остановка
+make logs     # логи Django
+make test     # полный запуск тестов
 make shell    # Django shell
 ```
