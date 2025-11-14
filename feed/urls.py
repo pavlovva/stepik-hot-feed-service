@@ -13,9 +13,7 @@ urlpatterns = [
         views.post_aggregates,
         name="post_aggregates",
     ),
-    url(
-        r"^posts/(?P<post_id>[0-9]+)/likes/$", views.like_create, name="like_create"
-    ),
+    url(r"^posts/(?P<post_id>[0-9]+)/likes/$", views.like_create, name="like_create"),
     url(
         r"^posts/(?P<post_id>[0-9]+)/likes/(?P<user_id>[0-9]+)/$",
         views.like_delete,

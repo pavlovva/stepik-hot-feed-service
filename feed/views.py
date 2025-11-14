@@ -1,6 +1,6 @@
 import json
 
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
@@ -17,10 +17,15 @@ from .exceptions import (
     ValidationError,
 )
 from .services import LikeService, PostService
+from .validators import validate_pagination
 
 
 def hot_feed(request):
-    limit = int(request.GET.get("limit", 50))
+    try:
+        limit_param = request.GET.get("limit", 50)
+        limit, _ = validate_pagination(limit_param)
+    except ValidationError as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
     cached = get_cached_feed(limit)
     if cached is not None:
@@ -98,7 +103,7 @@ def post_update(request, post_id):
 def post_delete(request, post_id):
     try:
         PostService.delete_post(post_id)
-        return JsonResponse({}, status=204)
+        return HttpResponse(status=204)
     except PostNotFoundError as e:
         return JsonResponse({"error": str(e)}, status=404)
     except Exception:
@@ -145,7 +150,7 @@ def like_create(request, post_id):
 def like_delete(request, post_id, user_id):
     try:
         LikeService.remove_like(user_id, post_id)
-        return JsonResponse({}, status=204)
+        return HttpResponse(status=204)
     except ValidationError as e:
         return JsonResponse({"error": str(e)}, status=400)
     except PostNotFoundError as e:

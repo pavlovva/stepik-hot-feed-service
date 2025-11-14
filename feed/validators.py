@@ -36,7 +36,7 @@ def validate_post_data(data):
     return validated_data
 
 
-def validate_pagination(limit, offset):
+def validate_pagination(limit, offset=0):
     try:
         limit = int(limit)
     except (ValueError, TypeError):

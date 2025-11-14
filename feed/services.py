@@ -1,4 +1,5 @@
 from django.db import IntegrityError, transaction
+from django.db.models import F
 
 from .cache import invalidate_feed_cache
 from .exceptions import LikeNotFoundError, PostNotFoundError
@@ -39,8 +40,12 @@ class PostService:
         if not post:
             raise PostNotFoundError(f"Post with id {post_id} not found")
 
-        if validated_data:
-            post = PostRepository.update(post, validated_data)
+        if not validated_data:
+            # Нет изменений, возвращаем существующий пост
+            return serialize_post(post)
+
+        post = PostRepository.update(post, validated_data)
+        invalidate_feed_cache()
 
         return serialize_post(post)
 
@@ -92,6 +97,10 @@ class LikeService:
 
         try:
             like = LikeRepository.create_like(user_id, post_id)
+            # Явно обновляем like_count в транзакции для атомарности
+            post.like_count = F("like_count") + 1
+            post.save(update_fields=["like_count"])
+            invalidate_feed_cache()
         except IntegrityError:
             like = LikeRepository.get_or_none(user_id, post_id)
             if like:
@@ -104,7 +113,7 @@ class LikeService:
     @transaction.atomic
     def remove_like(user_id, post_id):
         user_id = validate_user_id(user_id)
-        post = PostRepository.get_by_id(post_id)
+        post = PostRepository.get_by_id(post_id, lock=True)
         if not post:
             raise PostNotFoundError(f"Post with id {post_id} not found")
 
@@ -115,6 +124,10 @@ class LikeService:
             )
 
         LikeRepository.delete_like(like)
+        # Явно обновляем like_count в транзакции для атомарности
+        post.like_count = F("like_count") - 1
+        post.save(update_fields=["like_count"])
+        invalidate_feed_cache()
 
     @staticmethod
     def get_like_status(user_id, post_id):

@@ -59,8 +59,7 @@ class ConcurrencyTests(TransactionTestCase):
                 errors.append(e)
 
         threads = [
-            threading.Thread(target=add_like_thread, args=(i,))
-            for i in range(1, 11)
+            threading.Thread(target=add_like_thread, args=(i,)) for i in range(1, 11)
         ]
         for t in threads:
             t.start()
@@ -77,7 +76,7 @@ class ConcurrencyTests(TransactionTestCase):
     def test_concurrent_add_and_remove_likes(self):
         post = PostFactory()
         for i in range(1, 6):
-            LikeFactory(user_id=i, post=post)
+            LikeService.add_like(i, post.id)
         post.refresh_from_db()
         initial_count = post.like_count
 
@@ -98,12 +97,10 @@ class ConcurrencyTests(TransactionTestCase):
                 errors.append(e)
 
         add_threads = [
-            threading.Thread(target=add_like_thread, args=(i,))
-            for i in range(6, 11)
+            threading.Thread(target=add_like_thread, args=(i,)) for i in range(6, 11)
         ]
         remove_threads = [
-            threading.Thread(target=remove_like_thread, args=(i,))
-            for i in range(1, 4)
+            threading.Thread(target=remove_like_thread, args=(i,)) for i in range(1, 4)
         ]
 
         all_threads = add_threads + remove_threads

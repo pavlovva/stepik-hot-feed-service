@@ -23,8 +23,11 @@ def set_cached_feed(limit, posts):
     cache.set(key, json.dumps(posts), CACHE_TTL)
 
 
-def invalidate_feed_cache():
-    for limit in [10, 20, 50, 100]:
+def invalidate_feed_cache(limits=None):
+    if limits is None:
+        limits = [10, 20, 50, 100]
+
+    for limit in limits:
         key = CACHE_KEY_TEMPLATE.format(limit=limit)
         cache.delete(key)
 

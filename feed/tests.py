@@ -68,15 +68,20 @@ class HotFeedCacheTests(BaseTestCase):
             self.get_feed()
 
     def test_invalidation_on_like_create(self):
+        """
+        Проверяем инвалидацию кэша при создании лайка через сервис.
+        """
+        from feed.services import LikeService
+
         post = PostFactory()
-        LikeFactory(post=post)
+        LikeService.add_like(user_id=1, post_id=post.id)
 
         self.get_feed()
 
         with self.assertNumQueries(0):
             self.get_feed()
 
-        LikeFactory(post=post)
+        LikeService.add_like(user_id=2, post_id=post.id)
 
         with self.assertNumQueries(1):
             self.get_feed()
@@ -97,13 +102,15 @@ class HotFeedStampedeTests(BaseTestCase):
 
 class LikeSignalTests(BaseTestCase):
     def test_like_updates_count(self):
+        from feed.services import LikeService
+
         post = PostFactory()
 
-        LikeFactory(post=post)
+        LikeService.add_like(user_id=1, post_id=post.id)
         post.refresh_from_db()
         self.assertEqual(post.like_count, 1)
 
-        LikeFactory(post=post)
+        LikeService.add_like(user_id=2, post_id=post.id)
         post.refresh_from_db()
         self.assertEqual(post.like_count, 2)
 
