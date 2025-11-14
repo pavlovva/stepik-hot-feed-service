@@ -37,14 +37,18 @@ class PostRepository:
     def list_hot(limit, offset=0):
         twenty_four_hours_ago = timezone.now() - timedelta(hours=24)
 
-        posts = Post.objects.annotate(
-            score=Count(
-                Case(
-                    When(likes__created_at__gte=twenty_four_hours_ago, then=1),
-                    output_field=IntegerField(),
+        posts = (
+            Post.objects.annotate(
+                score=Count(
+                    Case(
+                        When(likes__created_at__gte=twenty_four_hours_ago, then=1),
+                        output_field=IntegerField(),
+                    )
                 )
             )
-        ).order_by("-score", "-created_at")[offset: offset + limit]
+            .distinct()
+            .order_by("-score", "-created_at")[offset : offset + limit]
+        )
 
         return posts
 
