@@ -9,8 +9,8 @@ def serialize_post(post):
 def serialize_like(like):
     return {
         "id": like.id,
-        "post_id": like.post_id,
-        "user_id": like.user_id,
+        "post_id": int(like.post_id),
+        "user_id": int(like.user_id),
         "created_at": like.created_at.isoformat(),
     }
 

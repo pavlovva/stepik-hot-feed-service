@@ -44,7 +44,7 @@ class PostRepository:
                     output_field=IntegerField(),
                 )
             )
-        ).order_by("-score", "-created_at")[offset : offset + limit]
+        ).order_by("-score", "-created_at")[offset: offset + limit]
 
         return posts
 
